@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  AGENT
+  MANAGER
+  SUPER_ADMIN
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  UNDER_OFFER
+  SOLD
+  RENTED
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  SCHEDULED
+  CLOSED
+}
+
+enum DealStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  FINALIZED
+}
+
+model User {
+  id          String           @id @default(uuid())
+  email       String           @unique
+  password    String
+  role        Role
+  firstname   String
+  lastname    String
+  phone       String
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+
+  clientProfile   ClientProfile?
+  employeeProfile EmployeeProfile?
+}
+
+model ClientProfile {
+  id               String     @id @default(uuid())
+  user             User       @relation(fields: [userId], references: [id])
+  userId           String     @unique
+  budgetMin        Int?
+  budgetMax        Int?
+  isVerifiedOwner  Boolean    @default(false)
+
+  clientTypes      ClientType[]
+  preferredCities  PreferredCity[]
+  propertiesOwned  Property[]
+  inquiriesSent    Inquiry[]
+  savedProperties  SavedProperty[]
+  deals            Deal[]
+}
+
+model ClientType {
+  id         String         @id @default(uuid())
+  type       String
+  client     ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId   String
+}
+
+model PreferredCity {
+  id         String         @id @default(uuid())
+  city       String
+  client     ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId   String
+}
+
+model EmployeeProfile {
+  id               String     @id @default(uuid())
+  user             User       @relation(fields: [userId], references: [id])
+  userId           String     @unique
+  agency           Agency     @relation(fields: [agencyId], references: [id])
+  agencyId         String
+  position         Role       // AGENT or MANAGER
+  hiredAt          DateTime   @default(now())
+  performanceScore Float      @default(0)
+
+  managesAgency Agency? @relation("AgencyManager")
+  propertiesManaged Property[]
+  inquiriesHandled  Inquiry[]
+  dealsClosed       Deal[]
+}
+
+model Agency {
+  id         String            @id @default(uuid())
+  name       String
+  city       String
+  department String
+  address    String
+
+  manager    EmployeeProfile?  @relation("AgencyManager", fields: [managerId], references: [id]) // error: Error parsing attribute "@relation": A one-to-one relation must use unique fields on the defining side. Either add an `@unique` attribute to the field `managerId`, or change the relation to one-to-many.
+  managerId  String? @unique
+  agents     EmployeeProfile[]
+  properties Property[]
+}
+
+model Property {
+  id          String           @id @default(uuid())
+  title       String
+  description String
+  price       Int
+  type        String
+  status      PropertyStatus   @default(AVAILABLE)
+  city        String
+  department  String
+  address     String
+
+  owner       ClientProfile    @relation(fields: [ownerId], references: [id])
+  ownerId     String
+
+  agent       EmployeeProfile  @relation(fields: [agentId], references: [id])
+  agentId     String
+
+  agency      Agency           @relation(fields: [agencyId], references: [id])
+  agencyId    String
+
+  images      PropertyImage[]
+  inquiries   Inquiry[]
+  deals       Deal[]
+  savedBy     SavedProperty[]
+}
+
+model PropertyImage {
+  id         String    @id @default(uuid())
+  url        String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  propertyId String
+}
+
+model Inquiry {
+  id            String           @id @default(uuid())
+  property      Property         @relation(fields: [propertyId], references: [id])
+  propertyId    String
+
+  client        ClientProfile    @relation(fields: [clientId], references: [id])
+  clientId      String
+
+  agent         EmployeeProfile  @relation(fields: [agentId], references: [id])
+  agentId       String
+
+  message       String
+  status        InquiryStatus    @default(NEW)
+  agentResponse String?
+  createdAt     DateTime         @default(now())
+}
+
+model Deal {
+  id          String           @id @default(uuid())
+  property    Property         @relation(fields: [propertyId], references: [id])
+  propertyId  String
+
+  client      ClientProfile    @relation(fields: [clientId], references: [id])
+  clientId    String
+
+  agent       EmployeeProfile  @relation(fields: [agentId], references: [id])
+  agentId     String
+
+  status      DealStatus       @default(PENDING)
+  signedAt    DateTime?
+  priceAgreed Int?
+}
+
+model SavedProperty {
+  id         String        @id @default(uuid())
+  client     ClientProfile @relation(fields: [clientId], references: [id])
+  clientId   String
+
+  property   Property      @relation(fields: [propertyId], references: [id])
+  propertyId String
+
+  savedAt    DateTime      @default(now())
+
+  @@unique([clientId, propertyId])
+}
