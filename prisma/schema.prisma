@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -10,6 +10,7 @@ datasource db {
 
 enum Role {
   CLIENT
+  OWNER
   AGENT
   MANAGER
   SUPER_ADMIN
@@ -17,174 +18,199 @@ enum Role {
 
 enum PropertyStatus {
   AVAILABLE
-  UNDER_OFFER
-  SOLD
-  RENTED
+  UNAVAILABLE
 }
 
-enum InquiryStatus {
-  NEW
-  CONTACTED
-  SCHEDULED
-  CLOSED
-}
-
-enum DealStatus {
+enum RequestStatus {
   PENDING
   ACCEPTED
   REJECTED
-  FINALIZED
+}
+
+enum ListingType {
+  SALE
+  RENT
+  BOTH
+}
+
+enum FamilyStatus {
+  CELIBATAIRE
+  MARIE
+  AVEC_ENFANT
+  AUTRE
 }
 
 model User {
-  id          String           @id @default(uuid())
-  email       String           @unique
-  password    String
-  role        Role
-  firstname   String
-  lastname    String
-  phone       String
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  password       String
+  role           Role
+  phone          String
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
 
-  clientProfile   ClientProfile?
-  employeeProfile EmployeeProfile?
+  clientProfile  ClientProfile?
+  agentProfile   AgentProfile?
+  notifications  Notification[]
 }
 
 model ClientProfile {
-  id               String     @id @default(uuid())
-  user             User       @relation(fields: [userId], references: [id])
-  userId           String     @unique
+  id               Int            @id @default(autoincrement())
+  firstname        String
+  lastname         String
+  user             User           @relation(fields: [userId], references: [id])
+  userId           Int            @unique
   budgetMin        Int?
   budgetMax        Int?
-  isVerifiedOwner  Boolean    @default(false)
+  isVerifiedOwner  Boolean?       @default(false)
 
-  clientTypes      ClientType[]
+  // 🆕 Priority-related fields
+  familyStatus     FamilyStatus?
+  isHandicapped    Boolean?       @default(false)
+  personalIncome   Int?           // salaire personnel
+  householdIncome  Int?           // salaire foyer
+  isPriority       Boolean?       @default(false)
+
   preferredCities  PreferredCity[]
   propertiesOwned  Property[]
-  inquiriesSent    Inquiry[]
+  requestsSent     Request[]
   savedProperties  SavedProperty[]
-  deals            Deal[]
+  clientNotes      ClientNote[]
+  flags            ClientFlagOnClientAndAgent[]
 }
 
-model ClientType {
-  id         String         @id @default(uuid())
-  type       String
-  client     ClientProfile  @relation(fields: [clientId], references: [id])
-  clientId   String
-}
-
+// this is made of pre-made cities than agnet has created a listing! so the city has available prperties
 model PreferredCity {
-  id         String         @id @default(uuid())
+  id         Int            @id @default(autoincrement())
   city       String
   client     ClientProfile  @relation(fields: [clientId], references: [id])
-  clientId   String
+  clientId   Int
 }
 
-model EmployeeProfile {
-  id               String     @id @default(uuid())
-  user             User       @relation(fields: [userId], references: [id])
-  userId           String     @unique
-  agency           Agency     @relation(fields: [agencyId], references: [id])
-  agencyId         String
-  position         Role       // AGENT or MANAGER
-  hiredAt          DateTime   @default(now())
-  performanceScore Float      @default(0)
+model AgentProfile {
+  id               Int            @id @default(autoincrement())
+  firstname        String
+  lastname         String
+  user             User           @relation(fields: [userId], references: [id])
+  userId           Int            @unique
+  agency           Agency         @relation(fields: [agencyId], references: [id])
+  agencyId         Int
+  position         Role           // AGENT or MANAGER
+  hiredAt          DateTime       @default(now())
+  performanceScore Float          @default(0)
 
-  managesAgency Agency? @relation("AgencyManager")
   propertiesManaged Property[]
-  inquiriesHandled  Inquiry[]
-  dealsClosed       Deal[]
+  requestsHandled   Request[]
+  clientNotes       ClientNote[]
+  flagsSet          ClientFlagOnClientAndAgent[]
 }
 
 model Agency {
-  id         String            @id @default(uuid())
-  name       String
-  city       String
-  department String
-  address    String
-
-  manager    EmployeeProfile?  @relation("AgencyManager", fields: [managerId], references: [id]) // error: Error parsing attribute "@relation": A one-to-one relation must use unique fields on the defining side. Either add an `@unique` attribute to the field `managerId`, or change the relation to one-to-many.
-  managerId  String? @unique
-  agents     EmployeeProfile[]
-  properties Property[]
-}
-
-model Property {
-  id          String           @id @default(uuid())
-  title       String
-  description String
-  price       Int
-  type        String
-  status      PropertyStatus   @default(AVAILABLE)
+  id          Int             @id @default(autoincrement())
+  postalCode  String
   city        String
   department  String
   address     String
 
-  owner       ClientProfile    @relation(fields: [ownerId], references: [id])
-  ownerId     String
 
-  agent       EmployeeProfile  @relation(fields: [agentId], references: [id])
-  agentId     String
+  agents      AgentProfile[]
+  properties  Property[]
+}
 
-  agency      Agency           @relation(fields: [agencyId], references: [id])
-  agencyId    String
+model Property {
+  id           Int             @id @default(autoincrement())
+  title        String
+  description  String
+  price        Int
+  type         String
+  status       PropertyStatus  @default(AVAILABLE)
+  listingType  ListingType     @default(SALE)
+  city         String
+  department   String
+  address      String
 
-  images      PropertyImage[]
-  inquiries   Inquiry[]
-  deals       Deal[]
-  savedBy     SavedProperty[]
+  owner        ClientProfile   @relation(fields: [ownerId], references: [id])
+  ownerId      Int
+
+  agent        AgentProfile    @relation(fields: [agentId], references: [id])
+  agentId      Int
+
+  agency       Agency          @relation(fields: [agencyId], references: [id])
+  agencyId     Int
+
+  images       PropertyImage[]
+  requests     Request[]
+  savedBy      SavedProperty[]
 }
 
 model PropertyImage {
-  id         String    @id @default(uuid())
+  id         Int       @id @default(autoincrement())
   url        String
   property   Property  @relation(fields: [propertyId], references: [id])
-  propertyId String
+  propertyId Int
 }
 
-model Inquiry {
-  id            String           @id @default(uuid())
-  property      Property         @relation(fields: [propertyId], references: [id])
-  propertyId    String
+model Request {
+  id             Int            @id @default(autoincrement())
+  property       Property       @relation(fields: [propertyId], references: [id])
+  propertyId     Int
 
-  client        ClientProfile    @relation(fields: [clientId], references: [id])
-  clientId      String
+  client         ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId       Int
 
-  agent         EmployeeProfile  @relation(fields: [agentId], references: [id])
-  agentId       String
+  agent          AgentProfile   @relation(fields: [agentId], references: [id])
+  agentId        Int
 
-  message       String
-  status        InquiryStatus    @default(NEW)
-  agentResponse String?
-  createdAt     DateTime         @default(now())
-}
-
-model Deal {
-  id          String           @id @default(uuid())
-  property    Property         @relation(fields: [propertyId], references: [id])
-  propertyId  String
-
-  client      ClientProfile    @relation(fields: [clientId], references: [id])
-  clientId    String
-
-  agent       EmployeeProfile  @relation(fields: [agentId], references: [id])
-  agentId     String
-
-  status      DealStatus       @default(PENDING)
-  signedAt    DateTime?
-  priceAgreed Int?
+  message        String
+  status         RequestStatus  @default(PENDING)
+  createdAt      DateTime       @default(now())
+  scheduledVisit DateTime?
 }
 
 model SavedProperty {
-  id         String        @id @default(uuid())
-  client     ClientProfile @relation(fields: [clientId], references: [id])
-  clientId   String
+  id         Int            @id @default(autoincrement())
+  client     ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId   Int
 
-  property   Property      @relation(fields: [propertyId], references: [id])
-  propertyId String
+  property   Property       @relation(fields: [propertyId], references: [id])
+  propertyId Int
 
-  savedAt    DateTime      @default(now())
+  savedAt    DateTime       @default(now())
 
   @@unique([clientId, propertyId])
+}
+model ClientNote {
+  id         Int            @id @default(autoincrement())
+  content    String
+  createdAt  DateTime       @default(now())
+  author     AgentProfile   @relation(fields: [authorId], references: [id])
+  authorId   Int
+  client     ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId   Int
+}
+enum ClientFlagType {
+  MISSING_DOCUMENTS
+  VIP_CLIENT
+  NEEDS_ASSISTANCE
+  POTENTIAL_FRAUD
+}
+
+model ClientFlagOnClientAndAgent {
+  id         Int            @id @default(autoincrement())
+  type       ClientFlagType
+  createdAt  DateTime       @default(now())
+  client     ClientProfile  @relation(fields: [clientId], references: [id])
+  clientId   Int
+  setBy      AgentProfile   @relation(fields: [setById], references: [id])
+  setById    Int
+}
+
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  message     String
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 }
