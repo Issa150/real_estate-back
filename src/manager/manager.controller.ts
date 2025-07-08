@@ -7,28 +7,14 @@ import { UpdateManagerDto } from './dto/update-manager.dto';
 export class ManagerController {
   constructor(private readonly managerService: ManagerService) {}
 
-  @Post()
-  create(@Body() createManagerDto: CreateManagerDto) {
-    return this.managerService.create(createManagerDto);
-  }
+  /*
+  - get all agnet related to its agency
+  - get all clients not deleted related to its agency 
+  - get all clients deleted related to its agency
+  - get all properties related to its agency
+  - get all requests related to its agency
+  - 
 
-  @Get()
-  findAll() {
-    return this.managerService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.managerService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateManagerDto: UpdateManagerDto) {
-    return this.managerService.update(+id, updateManagerDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.managerService.remove(+id);
-  }
+  - Crud for user, client, agent, property, request, notes
+  */
 }

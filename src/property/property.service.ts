@@ -1,26 +1,80 @@
-import { Injectable } from '@nestjs/common';
+// src/property/property.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class PropertyService {
-  create(createPropertyDto: CreatePropertyDto) {
-    return 'This action adds a new property';
+  constructor(private prisma: PrismaService) { }
+
+  async create(dto: CreatePropertyDto) {
+    return this.prisma.property.create({
+      data: {
+        title: dto.title,
+        description: dto.description,
+        price: dto.price,
+        type: dto.type,
+        status: dto.status,
+        listingType: dto.listingType,
+        city: dto.city,
+        department: dto.department,
+        address: dto.address,
+        ownerId: dto.ownerId,
+        agentId: dto.agentId,
+        agencyId: dto.agencyId,
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all property`;
+  async findAll() {
+    return await this.prisma.property.findMany({
+      select: {
+        id: true,
+        price: true,
+        listingType: true,
+        department: true,
+        images: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} property`;
+  async findOne(id: number) {
+    const property = await this.prisma.property.findUnique({
+      where: { id },
+      select:{
+        id: true,
+        description: true,
+        price: true,
+        type: true,
+        status: true,
+        listingType: true,
+        city: true,
+        department: true,
+        address: true,
+        agency: true,
+      }
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
+    return property;
   }
 
-  update(id: number, updatePropertyDto: UpdatePropertyDto) {
-    return `This action updates a #${id} property`;
+  async update(id: number, dto: UpdatePropertyDto) {
+    await this.findOne(id); // ensuring it exists
+    return this.prisma.property.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} property`;
+  async remove(id: number) {
+    await this.findOne(id); // ensuring it exists
+    return this.prisma.property.delete({
+      where: { id },
+    });
   }
 }

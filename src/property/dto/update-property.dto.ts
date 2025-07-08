@@ -1,3 +1,4 @@
+// src/property/dto/update-property.dto.ts
 import { PartialType } from '@nestjs/mapped-types';
 import { CreatePropertyDto } from './create-property.dto';
 

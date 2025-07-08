@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// src/property/property.controller.ts
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 
-@Controller('property')
+@Controller('properties')
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) {}
 
   @Post()
-  create(@Body() createPropertyDto: CreatePropertyDto) {
-    return this.propertyService.create(createPropertyDto);
+  create(@Body() dto: CreatePropertyDto) {
+    return this.propertyService.create(dto);
   }
 
   @Get()
@@ -18,17 +19,17 @@ export class PropertyController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.propertyService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.propertyService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto) {
-    return this.propertyService.update(+id, updatePropertyDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePropertyDto) {
+    return this.propertyService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.propertyService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.propertyService.remove(id);
   }
 }

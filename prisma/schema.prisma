@@ -40,13 +40,39 @@ enum FamilyStatus {
   AUTRE
 }
 
+enum EmploymentType {
+  CDD
+  CDI
+  INTERIM
+  FREELANCE
+  RETRAITE
+  ETUDIANT
+  CHOMEUR
+  AUTO_ENTREPRENEUR
+}
+
+enum DealType {
+  SALE
+  RENT
+}
+
+enum ClientFlagType {
+  MISSING_DOCUMENTS
+  VIP_CLIENT
+  NEEDS_ASSISTANCE
+  POTENTIAL_FRAUD
+}
+
 model User {
   id             Int            @id @default(autoincrement())
   email          String         @unique
   password       String
-  role           Role
+  role           Role           @default(CLIENT)
+  firstname      String
+  lastname       String
   phone          String
   isActive       Boolean        @default(true)
+  deletedAt      DateTime?
   createdAt      DateTime       @default(now())
 
   clientProfile  ClientProfile?
@@ -56,20 +82,16 @@ model User {
 
 model ClientProfile {
   id               Int            @id @default(autoincrement())
-  firstname        String
-  lastname         String
   user             User           @relation(fields: [userId], references: [id])
   userId           Int            @unique
-  budgetMin        Int?
-  budgetMax        Int?
   isVerifiedOwner  Boolean?       @default(false)
-
-  // 🆕 Priority-related fields
   familyStatus     FamilyStatus?
   isHandicapped    Boolean?       @default(false)
-  personalIncome   Int?           // salaire personnel
-  householdIncome  Int?           // salaire foyer
   isPriority       Boolean?       @default(false)
+  isEmployed       Boolean?       @default(false)
+  employmentType   EmploymentType?
+  personalIncome   Int?
+  householdIncome  Int?
 
   preferredCities  PreferredCity[]
   propertiesOwned  Property[]
@@ -77,9 +99,10 @@ model ClientProfile {
   savedProperties  SavedProperty[]
   clientNotes      ClientNote[]
   flags            ClientFlagOnClientAndAgent[]
+  dealsAsClient    Deal[]        @relation("ClientDeals")
+  dealsAsLandlord  Deal[]        @relation("LandlordDeals")
 }
 
-// this is made of pre-made cities than agnet has created a listing! so the city has available prperties
 model PreferredCity {
   id         Int            @id @default(autoincrement())
   city       String
@@ -89,13 +112,11 @@ model PreferredCity {
 
 model AgentProfile {
   id               Int            @id @default(autoincrement())
-  firstname        String
-  lastname         String
   user             User           @relation(fields: [userId], references: [id])
   userId           Int            @unique
   agency           Agency         @relation(fields: [agencyId], references: [id])
   agencyId         Int
-  position         Role           // AGENT or MANAGER
+  position         Role
   hiredAt          DateTime       @default(now())
   performanceScore Float          @default(0)
 
@@ -103,6 +124,7 @@ model AgentProfile {
   requestsHandled   Request[]
   clientNotes       ClientNote[]
   flagsSet          ClientFlagOnClientAndAgent[]
+  dealsClosed       Deal[]
 }
 
 model Agency {
@@ -111,7 +133,6 @@ model Agency {
   city        String
   department  String
   address     String
-
 
   agents      AgentProfile[]
   properties  Property[]
@@ -141,6 +162,7 @@ model Property {
   images       PropertyImage[]
   requests     Request[]
   savedBy      SavedProperty[]
+  deals        Deal[]
 }
 
 model PropertyImage {
@@ -167,6 +189,28 @@ model Request {
   scheduledVisit DateTime?
 }
 
+model Deal {
+  id           Int             @id @default(autoincrement())
+  property     Property        @relation(fields: [propertyId], references: [id])
+  propertyId   Int
+
+  client       ClientProfile   @relation("ClientDeals", fields: [clientId], references: [id])
+  clientId     Int
+
+  landlord     ClientProfile   @relation("LandlordDeals", fields: [landlordId], references: [id])
+  landlordId   Int
+
+  agent        AgentProfile    @relation(fields: [agentId], references: [id])
+  agentId      Int
+
+  dealType     DealType
+  priceAgreed  Int
+  signedAt     DateTime
+  notes        String?
+
+  createdAt    DateTime        @default(now())
+}
+
 model SavedProperty {
   id         Int            @id @default(autoincrement())
   client     ClientProfile  @relation(fields: [clientId], references: [id])
@@ -179,6 +223,7 @@ model SavedProperty {
 
   @@unique([clientId, propertyId])
 }
+
 model ClientNote {
   id         Int            @id @default(autoincrement())
   content    String
@@ -187,12 +232,6 @@ model ClientNote {
   authorId   Int
   client     ClientProfile  @relation(fields: [clientId], references: [id])
   clientId   Int
-}
-enum ClientFlagType {
-  MISSING_DOCUMENTS
-  VIP_CLIENT
-  NEEDS_ASSISTANCE
-  POTENTIAL_FRAUD
 }
 
 model ClientFlagOnClientAndAgent {
@@ -204,7 +243,6 @@ model ClientFlagOnClientAndAgent {
   setBy      AgentProfile   @relation(fields: [setById], references: [id])
   setById    Int
 }
-
 
 model Notification {
   id          Int       @id @default(autoincrement())
