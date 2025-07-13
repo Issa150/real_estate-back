@@ -9,9 +9,11 @@ export class CreateRequestDto {
   clientId: number;
 
   @IsInt()
+  @IsOptional()
   agentId: number;
 
   @IsString()
+  @IsOptional()
   message: string;
 
   @IsOptional()

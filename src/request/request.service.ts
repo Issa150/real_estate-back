@@ -14,7 +14,6 @@ export class RequestService {
         propertyId: dto.propertyId,
         clientId: dto.clientId,
         agentId: dto.agentId,
-        message: dto.message,
         scheduledVisit: dto.scheduledVisit,
       },
     });

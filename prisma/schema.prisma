@@ -71,6 +71,7 @@ model User {
   firstname      String
   lastname       String
   phone          String
+  profilePicture String?
   isActive       Boolean        @default(true)
   deletedAt      DateTime?
   createdAt      DateTime       @default(now())
@@ -153,8 +154,8 @@ model Property {
   owner        ClientProfile   @relation(fields: [ownerId], references: [id])
   ownerId      Int
 
-  agent        AgentProfile    @relation(fields: [agentId], references: [id])
-  agentId      Int
+  agent        AgentProfile?    @relation(fields: [agentId], references: [id])
+  agentId      Int?
 
   agency       Agency          @relation(fields: [agencyId], references: [id])
   agencyId     Int
@@ -180,11 +181,11 @@ model Request {
   client         ClientProfile  @relation(fields: [clientId], references: [id])
   clientId       Int
 
-  agent          AgentProfile   @relation(fields: [agentId], references: [id])
-  agentId        Int
+  agent          AgentProfile?   @relation(fields: [agentId], references: [id])
+  agentId        Int?  
 
-  message        String
   status         RequestStatus  @default(PENDING)
+  updatedAt      DateTime       @updatedAt
   createdAt      DateTime       @default(now())
   scheduledVisit DateTime?
 }
