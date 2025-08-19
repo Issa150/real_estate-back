@@ -37,7 +37,7 @@ export class AgentService {
   }
 
   async findOne(id: number) {
-    const client = await this.prisma.agentProfile.findFirst({
+    const agent = await this.prisma.agentProfile.findFirst({
       where: {
         user: {
           id: id,
@@ -49,16 +49,16 @@ export class AgentService {
       },
     });
 
-    if (!client || client.user.deletedAt) {
+    if (!agent || agent.user.deletedAt) {
       throw new NotFoundException(`Client with user ID ${id} not found or deleted`);
     }
 
-    return client;
+    return agent;
   }
 
   async update(userId: number, dto: UpdateAgentDto) {
     // First, finding the client profile by userId
-    const client = await this.prisma.agentProfile.findFirst({
+    const agent = await this.prisma.agentProfile.findFirst({
       where: {
         user: {
           id: userId,
@@ -67,22 +67,22 @@ export class AgentService {
       },
     });
 
-    if (!client) throw new NotFoundException(`Client profile for user ID ${userId} not found`);
+    if (!agent) throw new NotFoundException(`Client profile for user ID ${userId} not found`);
 
-    console.log("❤️❤️", client.id, userId, client);
+    console.log("❤️❤️", agent.id, userId, agent);
     return this.prisma.agentProfile.update({
       where: {
-        id: client.id, // Using the found client's ID 
+        id: agent.id, // Using the found client's ID 
       },
       data: dto,
     });
   }
 
   async remove(id: number) {
-    const client = await this.prisma.agentProfile.findUnique({ where: { id } });
-    if (!client) {
+    const agent = await this.prisma.agentProfile.findUnique({ where: { id } });
+    if (!agent) {
       // Same logic: only care if user exists
-      throw new Error(`Client profile with ID ${id} not found`);
+      throw new Error(`Agent profile with ID ${id} not found`);
     }
 
     return this.prisma.agentProfile.delete({

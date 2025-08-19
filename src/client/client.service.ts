@@ -1,9 +1,9 @@
-// src/client/client.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ClientService {
@@ -46,8 +46,27 @@ export class ClientService {
       },
     });
 
+    
     if (!client || client.user.deletedAt) {
       throw new NotFoundException(`Client with user ID ${id} not found or deleted`);
+    }
+
+    return {
+      id: client.user.id,
+      email: client.user.email,
+      firstname: client.user.firstname,
+      lastname: client.user.lastname,
+      phone: client.user.phone,
+      profilePicture: client.user.profilePicture,
+      isActive: client.user.isActive,
+      client: {
+        isverfiledOwner: client.isVerifiedOwner,
+        familyStatus: client.familyStatus,
+        isHandicapped: client.isHandicapped,
+        personalIncome: client.personalIncome,
+        householdIncome: client.householdIncome,
+        isPriority: client.isPriority,
+      },
     }
 
     return client;
@@ -55,6 +74,7 @@ export class ClientService {
 
   async update(userId: number, dto: UpdateClientDto) {
     // First, finding the client profile by userId
+    console.log("❤️❤️", userId, dto);
     const client = await this.prisma.clientProfile.findFirst({
       where: {
         user: {

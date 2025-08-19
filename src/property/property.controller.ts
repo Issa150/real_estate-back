@@ -13,10 +13,21 @@ export class PropertyController {
     return this.propertyService.create(dto);
   }
 
+  // @Get()
+  // findAllForClient() {
+  //   return this.propertyService.findAllForClient();
+  // }
+
   @Get()
-  findAll() {
-    return this.propertyService.findAll();
+  findAllForAgent() {
+    return this.propertyService.findAllForAgent();
   }
+
+  @Get('requests/:id')
+  getRequestsForProperty(@Param('id', ParseIntPipe) id: number) {
+    return this.propertyService.getRequestsForProperty(id);
+  }
+  
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {

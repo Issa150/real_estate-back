@@ -15,6 +15,12 @@ export class CreatePropertyDto {
   @IsString()
   type: string;
 
+  @IsInt()
+  rooms: number;
+
+  @IsInt()
+  area: number;
+
   @IsEnum(PropertyStatus)
   status: PropertyStatus;
 

@@ -74,14 +74,11 @@ export class RequestService {
         createdAt: true,
         client: {
           select: {
-            user: {
-              select: {
                 id: true,
                 firstname: true,
                 lastname: true,
                 role: true,
-              }
-            }
+              
           }
         }
       }
@@ -91,17 +88,52 @@ export class RequestService {
     }
     return requests.map(req => ({
       ...req,
-      client: req.client.user, // Flatten the agent user object
+      client: req.client, // Flatten the agent user object
     }));
   }
 
-  async findOne(id: number) {
+  async findOneOld(id: number) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       include: {
         property: true,
-        client: { include: { user: true } },
-        agent: { include: { user: true } },
+        client: true,
+        agent: true,
+      },
+    });
+
+    if (!request) throw new NotFoundException(`Request with ID ${id} not found`);
+    return request;
+  }
+
+  /**
+   * 
+   * @param id - This function get Id of a Propperty !!!
+   * @returns Result of requests for a property
+   * @throws NotFoundException if the property with the given ID does not exist
+   */
+  async findOne(id: number) {
+    const request = await this.prisma.request.findFirst({
+      where: { 
+        propertyId: id
+       },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            profilePicture: true,
+          }
+        },
+        agent: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            profilePicture: true,
+          }
+        },
       },
     });
 

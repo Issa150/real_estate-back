@@ -9,9 +9,9 @@ export class CreateClientDto {
   // @IsString()
   // lastname: string;
 
-  @IsOptional()
-  @IsBoolean()
-  isVerifiedOwner?: boolean;
+  // @IsOptional()
+  // @IsBoolean()
+  // isVerifiedOwner?: boolean; // This should be dones by admin, not the client
 
   @IsOptional()
   @IsEnum(FamilyStatus)
@@ -29,7 +29,7 @@ export class CreateClientDto {
   @IsInt()
   householdIncome?: number;
 
-  @IsOptional()
-  @IsBoolean()
-  isPriority?: boolean;
+  // @IsOptional()
+  // @IsBoolean()
+  // isPriority?: boolean; // a client can not make himself priority, it is set by the admin
 }

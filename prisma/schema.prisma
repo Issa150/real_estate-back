@@ -78,6 +78,8 @@ model User {
 
   clientProfile  ClientProfile?
   agentProfile   AgentProfile?
+  requestsAsClient Request[] @relation("ClientUserRequest")
+  requestsAsAgent  Request[] @relation("AgentUserRequest")
   notifications  Notification[]
 }
 
@@ -96,7 +98,6 @@ model ClientProfile {
 
   preferredCities  PreferredCity[]
   propertiesOwned  Property[]
-  requestsSent     Request[]
   savedProperties  SavedProperty[]
   clientNotes      ClientNote[]
   flags            ClientFlagOnClientAndAgent[]
@@ -122,7 +123,6 @@ model AgentProfile {
   performanceScore Float          @default(0)
 
   propertiesManaged Property[]
-  requestsHandled   Request[]
   clientNotes       ClientNote[]
   flagsSet          ClientFlagOnClientAndAgent[]
   dealsClosed       Deal[]
@@ -145,6 +145,8 @@ model Property {
   description  String
   price        Int
   type         String
+  rooms        Int
+  area         Int
   status       PropertyStatus  @default(AVAILABLE)
   listingType  ListingType     @default(SALE)
   city         String
@@ -178,11 +180,11 @@ model Request {
   property       Property       @relation(fields: [propertyId], references: [id])
   propertyId     Int
 
-  client         ClientProfile  @relation(fields: [clientId], references: [id])
+  client         User      @relation("ClientUserRequest", fields: [clientId], references: [id])
   clientId       Int
 
-  agent          AgentProfile?   @relation(fields: [agentId], references: [id])
-  agentId        Int?  
+  agent          User?     @relation("AgentUserRequest", fields: [agentId], references: [id])
+  agentId        Int? 
 
   status         RequestStatus  @default(PENDING)
   updatedAt      DateTime       @updatedAt

@@ -1,4 +1,3 @@
-// src/client/client.controller.ts
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -6,7 +5,7 @@ import { UpdateClientDto } from './dto/update-client.dto';
 
 @Controller('clients')
 export class ClientController {
-  constructor(private readonly clientService: ClientService) {}
+  constructor(private readonly clientService: ClientService) { }
 
   @Post(':userId')
   create(
@@ -31,6 +30,7 @@ export class ClientController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateClientDto,
   ) {
+    console.log("Updating client with ID:", id, "and data:", dto);
     return this.clientService.update(id, dto);
   }
 
