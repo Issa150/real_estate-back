@@ -1,28 +1,30 @@
 // src/property/dto/create-property.dto.ts
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { ListingType, PropertyStatus } from '@prisma/client';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ListingType } from '@prisma/client';
 
 export class CreatePropertyDto {
-  @IsString()
-  title: string;
+  // @IsString()
+  // title: string;
 
+  @IsOptional()
   @IsString()
   description: string;
 
-  @IsInt()
+  @IsNumber()
   price: number;
 
-  @IsString()
-  type: string;
+  // @IsString()
+  // type: string;
 
   @IsInt()
   rooms: number;
 
-  @IsInt()
+  @IsNumber()
   area: number;
 
-  @IsEnum(PropertyStatus)
-  status: PropertyStatus;
+  @IsOptional()
+  @IsBoolean()
+  isAvailable: boolean;
 
   @IsEnum(ListingType)
   listingType: ListingType;
@@ -36,9 +38,10 @@ export class CreatePropertyDto {
   @IsString()
   address: string;
 
-  @IsInt()
+  @IsNumber()
   ownerId: number;
 
+  @IsOptional()
   @IsInt()
   agentId: number;
 

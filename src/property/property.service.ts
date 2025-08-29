@@ -11,13 +11,11 @@ export class PropertyService {
   async create(dto: CreatePropertyDto) {
     return this.prisma.property.create({
       data: {
-        title: dto.title,
         description: dto.description,
         price: dto.price,
-        type: dto.type,
         rooms: dto.rooms,
         area: dto.area,
-        status: dto.status,
+        isAvailable: dto.isAvailable,
         listingType: dto.listingType,
         city: dto.city,
         department: dto.department,
@@ -30,21 +28,8 @@ export class PropertyService {
   }
 
   async findAllForClient() {
+    // const primeRes = await this.prisma.property.findMany({
     return await this.prisma.property.findMany({
-      select: {
-        id: true,
-        price: true,
-        rooms: true,
-        area: true,
-        listingType: true,
-        city: true,
-        images: true,
-      },
-    });
-  }
-
-  async findAllForAgent() {
-    const primeRes = await this.prisma.property.findMany({
       select: {
         id: true,
         price: true,
@@ -55,16 +40,12 @@ export class PropertyService {
         images: true,
         owner: {
           select: {
-            user: {
-              select: {
-                id: true,
-                firstname: true,
-                lastname: true,
-                profilePicture: true,
-              }
-            }
+            id: true,
+            firstname: true,
+            lastname: true,
+            profilePicture: true,
+          }
 
-          },
         },
         // count number of requests for the property id
         _count: {
@@ -92,22 +73,89 @@ export class PropertyService {
       },
     });
     // returning a flat json object of primeRes
-    return primeRes.map(property => ({
-      id: property.id,
-      price: property.price,
-      rooms: property.rooms,
-      area: property.area,
-      listingType: property.listingType,
-      city: property.city,
-      images: property.images,
-      owner: {
-        id: property.owner.user.id,
-        firstname: property.owner.user.firstname,
-        lastname: property.owner.user.lastname,
-        profilePicture: property.owner.user.profilePicture,
+    // return primeRes.map(property => ({
+    //   id: property.id,
+    //   price: property.price,
+    //   rooms: property.rooms,
+    //   area: property.area,
+    //   listingType: property.listingType,
+    //   city: property.city,
+    //   images: property.images,
+    //   owner: {
+    //     id: property.owner.user.id,
+    //     firstname: property.owner.user.firstname,
+    //     lastname: property.owner.user.lastname,
+    //     profilePicture: property.owner.user.profilePicture,
+    //   },
+    //   requestsCount: property._count.requests,
+    // }));
+  }
+
+  async findAllForAgent(id: number) {
+    // const primeRes = await this.prisma.property.findMany({
+    return await this.prisma.property.findMany({
+      where: {
+        agentId: id
       },
-      requestsCount: property._count.requests,
-    }));
+      select: {
+        id: true,
+        price: true,
+        rooms: true,
+        area: true,
+        listingType: true,
+        city: true,
+        images: true,
+        owner: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            profilePicture: true,
+          }
+        },
+        // count number of requests for the property id
+        _count: {
+          select: {
+            requests: true,
+          }
+        },
+        // requests:{
+        //   select: {
+        //     id: true,
+        //     client: {
+        //       select: {
+        //         user: {
+        //           select: {
+        //             id: true,
+        //             firstname: true,
+        //             lastname: true,
+        //             profilePicture: true,
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+      },
+    });
+    // returning a flat json object of primeRes
+    // return primeRes.map(property => ({
+    //   id: property.id,
+    //   price: property.price,
+    //   rooms: property.rooms,
+    //   area: property.area,
+    //   listingType: property.listingType,
+    //   city: property.city,
+    //   images: property.images,
+    //   owner: {
+    //     id: property.owner.user.id,
+    //     firstname: property.owner.user.firstname,
+    //     lastname: property.owner.user.lastname,
+    //     profilePicture: property.owner.user.profilePicture,
+    //   },
+    //   requestsCount: property._count.requests,
+    // }
+    // ));
   }
 
   async getRequestsForProperty(id: number) {
@@ -154,10 +202,10 @@ export class PropertyService {
         id: true,
         description: true,
         price: true,
-        type: true,
+        // type: true,
         rooms: true,
         area: true,
-        status: true,
+        isAvailable: true,
         listingType: true,
         city: true,
         department: true,

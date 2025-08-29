@@ -78,6 +78,7 @@ model User {
 
   clientProfile  ClientProfile?
   agentProfile   AgentProfile?
+  propertiesOwned  Property[]
   requestsAsClient Request[] @relation("ClientUserRequest")
   requestsAsAgent  Request[] @relation("AgentUserRequest")
   notifications  Notification[]
@@ -97,7 +98,7 @@ model ClientProfile {
   householdIncome  Int?
 
   preferredCities  PreferredCity[]
-  propertiesOwned  Property[]
+  // propertiesOwned  Property[]
   savedProperties  SavedProperty[]
   clientNotes      ClientNote[]
   flags            ClientFlagOnClientAndAgent[]
@@ -141,19 +142,19 @@ model Agency {
 
 model Property {
   id           Int             @id @default(autoincrement())
-  title        String
+  // title        String
   description  String
-  price        Int
-  type         String
+  price        Float
+  // type         String
   rooms        Int
-  area         Int
-  status       PropertyStatus  @default(AVAILABLE)
+  area         Float
+  isAvailable  Boolean?        @default(true)
   listingType  ListingType     @default(SALE)
   city         String
   department   String
   address      String
 
-  owner        ClientProfile   @relation(fields: [ownerId], references: [id])
+  owner        User   @relation(fields: [ownerId], references: [id])
   ownerId      Int
 
   agent        AgentProfile?    @relation(fields: [agentId], references: [id])

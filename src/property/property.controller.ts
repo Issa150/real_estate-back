@@ -6,28 +6,34 @@ import { UpdatePropertyDto } from './dto/update-property.dto';
 
 @Controller('properties')
 export class PropertyController {
-  constructor(private readonly propertyService: PropertyService) {}
+  constructor(private readonly propertyService: PropertyService) { }
 
   @Post()
   create(@Body() dto: CreatePropertyDto) {
-    return this.propertyService.create(dto);
+    try {
+
+      return this.propertyService.create(dto);
+    } catch (error) {
+      console.error('Error creating property:', error);
+      throw error;
+    }
   }
 
-  // @Get()
-  // findAllForClient() {
-  //   return this.propertyService.findAllForClient();
-  // }
+  @Get("clinets")
+  findAllForClient() {
+    return this.propertyService.findAllForClient();
+  }
 
-  @Get()
-  findAllForAgent() {
-    return this.propertyService.findAllForAgent();
+  @Get("agent/:id")
+  findAllForAgent(@Param('id', ParseIntPipe) id: number) {
+    return this.propertyService.findAllForAgent(id);
   }
 
   @Get('requests/:id')
   getRequestsForProperty(@Param('id', ParseIntPipe) id: number) {
     return this.propertyService.getRequestsForProperty(id);
   }
-  
+
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
